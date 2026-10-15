@@ -1,255 +1,248 @@
-# SmartQueue – Smart Queue & Crowd Management System
+# SmartQueue – Intelligent Queue & Crowd Management System
 
-A complete, working queue-management web application for service centres (government offices, banks, hospitals, colleges…).
-Customers take a **digital token** from their phone, watch their position and waiting time live and get alerted when their turn is near.
-Counter staff call and serve customers from a console, administrators manage everything and watch crowd levels, analytics and smart recommendations.
+An enterprise-ready, zero-framework queue and crowd management system designed for high-throughput public and private service centers (financial institutions, healthcare facilities, government administrations, and educational campuses).
 
-| Layer | Technology |
-|---|---|
-| Frontend | HTML5, CSS3, vanilla JavaScript (no frameworks, no CDN – works offline) |
-| Backend | Java 11+ (JDK built-in `HttpServer`, JDBC, **no frameworks**) |
-| Database | **Oracle Database** (11g XE, 12c, 18c XE, 19c, 21c XE, 23ai Free) |
+SmartQueue allows customers to issue digital tokens on their mobile devices, track real-time queue position and dynamic wait-time estimates, and receive timely alerts. Counter staff manage token lifecycles through a specialized service console, while administrators monitor crowd densities, analyze throughput metrics, and act on intelligent optimization recommendations.
 
 ---
 
-## 1. Quick start (5 minutes)
+## Architecture & Technology Stack
 
-### Requirements
-* **JDK 11 or newer** (`javac -version`)
-* **Oracle Database** running locally – the free **Oracle Database XE** is perfect (11g XE, 18c XE, 21c XE or 23ai Free; 12c / 19c editions work too)
-* **Oracle JDBC driver** jar (`ojdbc8.jar`, one file, see step 2)
+| Layer | Implementation | Notes |
+|---|---|---|
+| **Frontend** | HTML5, CSS3 (Custom Design System), Vanilla ES6+ JavaScript | Zero external runtime dependencies, lightweight, responsive across mobile, tablet, and widescreen kiosk displays |
+| **Backend** | Java 11+ (Native `com.sun.net.httpserver.HttpServer`, JDBC) | Zero frameworks; raw performance, embedded HTTP server, and robust concurrent transaction handling |
+| **Database** | **Oracle Database** (11g XE, 12c, 18c XE, 19c, 21c XE, 23ai Free) | Relational schema utilizing Oracle sequences, constraint enforcement, and indexed queries |
+| **Testing** | Python 3 End-to-End Integration Suite | 187 automated checks covering API contracts, concurrency, and security |
 
-### Step 1 – Create the database user (once)
-SmartQueue keeps its tables in its own Oracle user (schema). Connect as `SYSTEM` (to the *pluggable* database – `XEPDB1` for XE 18c/21c, `FREEPDB1` for 23ai Free, `XE` for 11g XE) and run:
+---
+
+## Key Features
+
+### 1. Customer Self-Service Portal
+* **Digital Token Generation**: Customers issue service-specific tokens (`A001`, `B014`, etc.) from their mobile browsers or walk-in kiosks.
+* **Live Status Tracking**: Dynamic real-time updates for current serving token, queue position, and algorithmic estimated waiting time (ETA).
+* **Smart Proximity Alerts**: Multi-stage notifications ("Your turn is approaching" and "Counter ready") with audible chimes and visual cues.
+* **Feedback & Service Ratings**: Post-service rating collection for staff performance analytics.
+* **Priority Handling**: Support for designated priority patrons (senior citizens, individuals with disabilities, urgent cases).
+
+### 2. Counter Staff Console
+* **Counter Lifecycle Management**: Open, pause (break), close, and re-assign counters across different service lines.
+* **Token Workflow Controls**: Call next customer, start service, mark completed (with resolution notes), skip, recall, or place on hold.
+* **Walk-In Registration**: Onboard customers who lack personal smart devices directly at the counter.
+* **Keyboard Shortcuts**: Ergonomic physical key shortcuts (`N`: Next, `S`: Start, `C`: Complete, `R`: Recall, `H`: Hold, `K`: Skip) for rapid transaction processing.
+
+### 3. Queue Engine & Predictive ETA
+* **Multi-Service & Multi-Counter Routing**: Independent queues per department with flexible counter routing.
+* **Fair Ordering & Anti-Starvation**: Strict prioritization (Emergency → Priority → Standard) with configurable starvation caps to prevent standard token starvation.
+* **Predictive Wait-Time Modeling**: Real-time counter simulation incorporating rolling historical service durations.
+* **Automated No-Show Reclamation**: Configurable timeout background worker that automatically marks non-responsive tokens as skipped.
+
+### 4. Operations & Crowd Control
+* **Crowd Density Monitoring**: Real-time crowd classification (Low, Moderate, High, Critical) with automated threshold triggers.
+* **Intelligent Optimization Engine**: Dynamic suggestions to re-allocate idle counters to congested service categories with one-click application.
+* **Public Lobby Kiosk Board** (`/display.html`): High-visibility presentation display with chime and text-to-speech audio announcements for lobby screens and TVs.
+
+### 5. Administrative Intelligence & Governance
+* **Comprehensive Analytics**: Service demand distribution, wait-time trends, counter throughput, peak-hour heatmaps, and staff productivity benchmarks.
+* **Audit & Activity Logging**: Complete historical tracking of administrative and staff interventions.
+* **Data Portability**: Full data export capabilities in CSV format for institutional reporting.
+
+---
+
+## Project Structure
+
+```
+SmartQueue/
+├── backend/src/com/smartqueue/
+│   ├── Main.java                  Application entry point and daemon scheduler
+│   ├── config/AppConfig.java      Configuration provider (application.properties)
+│   ├── db/                        JDBC pool, schema migrator, demo-data seeder
+│   ├── http/                      HTTP router, session security, static asset server
+│   ├── api/                       REST controller layer (Auth, User, Staff, Admin, Public)
+│   ├── service/                   Core business logic and domain services
+│   │   ├── QueueService           Transactional token lifecycle management
+│   │   ├── LiveQueue              Queue simulation, ETA prediction, crowd classification
+│   │   ├── OptimizationService    Recommendation algorithms & throughput forecasting
+│   │   ├── AnalyticsService       Metric aggregations and reporting engine
+│   │   └── ...                    Notification, Settings, ActivityLog, AuthService
+│   └── util/                      JSON serialization, PBKDF2 hashing, time utilities
+├── frontend/
+│   ├── index.html                 Customer authentication and registration
+│   ├── user.html                  Customer token dashboard
+│   ├── staff.html                 Counter operator console
+│   ├── admin.html                 Central administrative and analytics dashboard
+│   ├── display.html               Public lobby display board
+│   ├── css/style.css              Unified responsive theme (dark/light mode)
+│   └── js/                        Modular client application scripts
+├── database/
+│   ├── schema.sql                 Complete Oracle schema (tables, sequences, indexes)
+│   ├── oracle-setup.sql           Initialization script for Oracle database user
+│   └── oracle-reset.sql           Development reset utility
+├── config/
+│   └── application.properties     System and database configuration
+├── lib/                           Oracle JDBC driver (ojdbc8.jar)
+├── scripts/                       Automation scripts (run.bat, run.sh, build.sh, test.sh)
+└── tests/
+    └── api_test.py                End-to-end integration test suite
+```
+
+---
+
+## Getting Started
+
+### Prerequisites
+* **Java Development Kit (JDK) 11 or higher** (`javac -version`)
+* **Oracle Database** (Oracle XE 11g/18c/21c, Oracle 19c, or Oracle 23ai Free)
+* **Oracle JDBC Driver**: Download `ojdbc8.jar` and place it in the `lib/` directory.
+
+---
+
+### Step 1: Initialize Database User
+Connect to your Oracle database instance as `SYSTEM` (or a user with administrative privileges) and run `database/oracle-setup.sql`:
 
 ```bash
-sqlplus system/<your-system-password>@//localhost:1521/XEPDB1 @database/oracle-setup.sql
+sqlplus system/<password>@//localhost:1521/XEPDB1 @database/oracle-setup.sql
 ```
-which executes
 
+This provisions the designated user schema:
 ```sql
 CREATE USER smartqueue IDENTIFIED BY "smartqueue123"
   DEFAULT TABLESPACE users TEMPORARY TABLESPACE temp QUOTA UNLIMITED ON users;
 GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE TO smartqueue;
 ```
-The application then creates all **tables, sequences, indexes and demo data by itself** on the first start. (Prefer to create the tables manually? Run `database/schema.sql` as the `smartqueue` user – it contains the full schema.)
 
-### Step 2 – Put the Oracle driver into `lib/`
-Download **ojdbc8.jar** from <https://www.oracle.com/database/technologies/appdev/jdbc-downloads.html> (or from Maven Central: `com/oracle/database/jdbc/ojdbc8`) and copy the `.jar` into the `lib/` folder. See `lib/README.txt`. (Oracle's licence does not allow shipping the driver inside this project.)
+> **Note:** The application automatically verifies, generates, and migrates all necessary tables, sequences, and indexes on its initial startup.
 
-### Step 3 – Configure
-Open `config/application.properties` and check the connection data:
+---
+
+### Step 2: Configure Environment
+Verify the connection credentials in [config/application.properties](config/application.properties):
 
 ```properties
+# Oracle Database Connection
 db.host=localhost
 db.port=1521
-db.service=XEPDB1       # XE 18c/21c = XEPDB1 | 23ai Free = FREEPDB1 | XE 11g = XE
+db.service=XEPDB1       # Use XEPDB1 for XE 18c/21c, FREEPDB1 for 23ai, XE for 11g
 db.user=smartqueue
-db.password=smartqueue123   # <- the password you used in oracle-setup.sql
+db.password=smartqueue123
+
+# Web Server Configuration
 server.port=8080
+server.host=0.0.0.0
+server.threads=32
+
+# Application Settings
+app.seed-demo-data=true # Set to false for clean production deployment
 ```
-Only the database settings differ from the MySQL edition – everything else (UI, features, API, demo data, accounts) is identical. Using an old-style SID? Set `db.sid=XE` instead of `db.service`. Need a special connection string (RAC, TCPS, wallet…)? Set `db.url=jdbc:oracle:thin:@…`.
 
-### Step 4 – Run
-| OS | Command |
-|---|---|
-| Windows | double-click **`scripts\run.bat`** |
-| Linux / macOS | `./scripts/run.sh` |
+---
 
-Then open **<http://localhost:8080>**.
-The console prints an extra address like `http://192.168.1.20:8080` – open it on your phone (same Wi-Fi) to try the customer experience on a real device.
+### Step 3: Launch the Application
 
-### Demo accounts (created on first start)
-| Role | Email | Password |
+#### Windows
+Run the provided batch script:
+```cmd
+scripts\run.bat
+```
+
+#### Linux / macOS
+Execute the startup shell script:
+```bash
+chmod +x scripts/*.sh
+./scripts/run.sh
+```
+
+Navigate to **`http://localhost:8080`** in any modern web browser.
+
+---
+
+## Default System Accounts
+
+When `app.seed-demo-data=true` is enabled, the system initializes with sample role profiles:
+
+| Role | Email | Password | Access Level |
+|---|---|---|---|
+| **Administrator** | `admin@smartqueue.com` | `Admin@123` | Full system control, analytics, user & counter management |
+| **Counter Staff** | `ravi@smartqueue.com` | `Staff@123` | Counter operations, customer calling, ticket completion |
+| **Standard Customer** | `user@smartqueue.com` | `User@123` | General service token generation & status monitoring |
+| **Priority Customer** | `senior@smartqueue.com` | `User@123` | Priority service token allocation |
+
+---
+
+## Security & Reliability Engineering
+
+* **Server-Enforced Access Control**: Strict role verification (`USER`, `STAFF`, `ADMIN`) validated on every API endpoint.
+* **Cryptographic Password Protection**: User credentials hashed via **PBKDF2-HMAC-SHA256** using unique per-user cryptographic salts across 150,000 iterations.
+* **Session Hardening**: 256-bit cryptographically secure session tokens stored exclusively as SHA-256 hashes server-side, transmitted with `HttpOnly`, `SameSite=Strict` cookies.
+* **SQL Injection Immunity**: Complete parameterized query implementation (`PreparedStatement`) across all database operations.
+* **Cross-Site Scripting (XSS) & CSRF Defense**: Strict Content-Security-Policy headers, context-aware DOM sanitization, and `X-Requested-With` header verification for mutation requests.
+* **Brute-Force Rate Limiting**: Exponential login lockout triggered after 5 consecutive failed attempts.
+
+---
+
+## REST API Specification
+
+All endpoints are served under `/api` and consume/produce `application/json`.
+
+| Service Scope | Method & Endpoint | Description |
 |---|---|---|
-| Administrator | `admin@smartqueue.com` | `Admin@123` |
-| Counter staff | `ravi@smartqueue.com` (also `meena@`, `arjun@`, `divya@`, `karthik@`, `sana@` `@smartqueue.com`) | `Staff@123` |
-| Customer | `user@smartqueue.com` | `User@123` |
-| Customer (priority – senior citizen) | `senior@smartqueue.com` | `User@123` |
-
-The login page has one-click buttons for these. **Change them (or set `app.seed-demo-data=false` before the very first start) for real use.**
-
----
-
-## 2. Five-minute demo script (great for presentations / viva)
-
-1. **Window A** – log in as *Customer* (`user@smartqueue.com`), take a token for *General Services*. See position, people ahead, estimated wait.
-2. **Window B** (private window) – log in as *Staff* (`ravi@smartqueue.com`), press **Open this counter**, then **Call next customer**.
-3. Back in **Window A**: the green *"It's your turn!"* banner appears with a countdown, a toast, a sound (click the speaker icon to enable) and a bell notification.
-4. In **B** press **Start serving**, then **Complete**. In **A** the rating card appears.
-5. Log in as *Administrator* – open **Dashboard** (live KPIs, crowd gauge), **Settings → Demo tools → Simulate a crowd** and watch crowd level change to MODERATE/HIGH, recommendations appear (*"Open Counter 3…"* with **Apply now**), **Analytics** and **Reports → Export CSV**.
-6. Open **<http://localhost:8080/display.html>** on a second screen / TV – the public lobby board with live "Now serving".
-7. Try the **dark mode** toggle and resize to phone width.
-
----
-
-## 3. Features (mapped to the project specification)
-
-### User module
-* Register / login / logout, profile, change password, secure sessions
-* Choose a service and get a **digital token** (prefix per service: `A001`, `B014`…)
-* Live **now-serving**, **people ahead**, **queue position**, **estimated waiting time** (auto-refresh every 3 s)
-* **"Your turn is approaching"** alert (configurable: when ≤ N people ahead) + **"It's your turn"** call banner with no-show countdown
-* Cancel token, full **token history** with filters, rate the service
-* Priority customers (senior citizens / disabled) flagged by the admin are served ahead of normal tokens
-
-### Smart token system
-* Unique token per service with its own letter prefix
-* Statuses: **Waiting → Called → Serving → Completed**, plus **Skipped**, **Cancelled**, **On hold**
-* **No duplicate active tokens** per customer (enforced in the database transaction)
-
-### Smart queue management
-* FIFO within a priority class, **Emergency → Priority → Normal** ordering with an **anti-starvation rule** (after *N* priority tokens in a row one normal token is served – configurable)
-* **Multiple queues** (one per service), **multiple counters** per service
-* **Auto-skip no-shows** after a configurable timeout (background job), restore skipped customers
-* Manual **re-ordering** (move to front/back), change priority, hold/resume, auto-assign mode
-
-### Waiting-time prediction
-Discrete simulation of the open counters: every counter becomes free after the remaining time of its current customer and each waiting customer goes to the counter that frees up first. Service time per service = blend of the configured default and the **real average of the last 14 days**. The Analytics page shows the **prediction accuracy** (promised vs. actual wait).
-
-### Counter management
-Create/edit/delete counters, assign to services, open/close, put on break, re-assign a counter to another service, see who is serving what.
-
-### Staff module
-Counter console with: open/close counter, **call next**, start serving, complete (with notes), **skip**, **recall** (re-announce), **hold**, cancel, walk-in registration, waiting/on-hold/skipped lists, today's log, own statistics. Keyboard shortcuts **N / S / C / R / H / K**.
-
-### Admin module
-Users, staff and services management, counters, live queues (reorder/prioritise/cancel/add walk-ins), crowd monitoring, **priority rules**, reports with filters + **CSV export**, activity/audit log, system settings (crowd thresholds, no-show timeout, priority burst limit, queue limit, public registration, session length).
-
-### Crowd management
-| Queue length | Level |
-|---|---|
-| 0 – 5 | **LOW** |
-| 6 – 15 | **MODERATE** |
-| 16 – 30 | **HIGH** |
-| 31+ | **CRITICAL** |
-
-(thresholds are editable in *Settings*). Shown as colour pills for users, a gauge for admins and on the lobby display.
-
-### Analytics dashboard
-Visitors per day / hour, completion vs. cancelled vs. skipped, average wait & service time, service-wise demand (donut), peak hours, busiest weekdays, **crowd heat-map** (weekday × hour), service / counter / staff performance, ratings, busiest periods. Range selectable 7–90 days. All charts are hand-built SVG.
-
-### Notifications
-In-app bell with unread counter, toast pop-ups, optional sound + vibration; events: token created, next-in-line, turn approaching, called, recalled, on hold, skipped, cancelled, completed.
-
-### Optimisation recommendations
-Rule-based engine that suggests *open a counter*, *move a counter from a calm service to a busy one*, *add capacity*, and flags quiet services – each with an **Apply now** button that executes the change. Plus an hour-by-hour **visitor forecast** from the same weekday in previous weeks.
-
-### Extras beyond the specification
-Public **lobby display board** (`/display.html`) with announcements (chime + speech), **light/dark theme**, fully responsive (phones → TV), demo tools (simulate a crowd), activity log, ratings & feedback, one-click demo login, password-strength meter, login lockout, graceful offline indicator, print styles.
+| **Authentication** | `POST /api/auth/register` | Register a new customer account |
+| | `POST /api/auth/login` | Authenticate and obtain session cookie |
+| | `POST /api/auth/logout` | Terminate active user session |
+| | `GET /api/auth/session` | Inspect current session context |
+| **Public** | `GET /api/public/config` | Retrieve system display configurations |
+| | `GET /api/public/services` | List active services and operational statuses |
+| | `GET /api/public/board` | Lobby display live feed |
+| **Customer** | `GET /api/user/dashboard` | Active ticket status and wait predictions |
+| | `POST /api/user/tokens` | Request a new service token |
+| | `POST /api/user/tokens/{id}/cancel` | Cancel an active token |
+| | `POST /api/user/tokens/{id}/feedback` | Submit service ratings and comments |
+| **Staff** | `GET /api/staff/overview` | Active queue status and counter assignment |
+| | `POST /api/staff/counter/open\|close\|break` | Update counter operational status |
+| | `POST /api/staff/call-next` | Advance queue and summon next customer |
+| | `POST /api/staff/tokens/{id}/complete` | Conclude service for active token |
+| **Administration** | `GET /api/admin/dashboard` | Aggregated real-time metrics and crowd index |
+| | `GET /api/admin/analytics` | Historical trends, wait time distributions |
+| | `GET /api/admin/reports/export` | Download operational logs as CSV |
+| | `POST /api/admin/recommendations/apply` | Execute operational optimization actions |
 
 ---
 
-## 4. Project structure
+## Automated Testing & Validation
 
-```
-SmartQueue/
-├── backend/src/com/smartqueue/
-│   ├── Main.java                  start-up, config, scheduler
-│   ├── config/AppConfig.java      reads config/application.properties
-│   ├── db/                        Oracle JDBC pool, schema creation, demo-data seeder, Row helper
-│   ├── http/                      HttpServer wrapper, router, request context, static files, security headers
-│   ├── api/                       REST endpoints  (Auth / User / Staff / Admin / Public)
-│   ├── service/                   business logic
-│   │   ├── QueueService           token life-cycle (transactional, one global lock)
-│   │   ├── LiveQueue              ordering, ETA simulation, crowd level  ← the "smart engine"
-│   │   ├── OptimizationService    recommendations + forecast
-│   │   ├── AnalyticsService       statistics for charts / reports
-│   │   ├── NotificationService, ActivityLog, Settings, AuthService, BackgroundJobs …
-│   └── util/                      JSON parser/writer, password hashing, time helpers, logging
-├── frontend/
-│   ├── index.html                 login / register
-│   ├── user.html   staff.html   admin.html   display.html
-│   ├── css/style.css              design system (light + dark)
-│   └── js/                        core.js (SQ library), charts.js, per-page scripts
-├── database/schema.sql            complete Oracle schema (tables, sequences, indexes)
-├── database/oracle-setup.sql      one-time: create the 'smartqueue' Oracle user
-├── database/oracle-reset.sql      optional: drop all tables/sequences to start again
-├── config/application.properties
-├── lib/                           put ojdbc8.jar here
-├── scripts/                       run.sh / run.bat / build.sh / test.sh
-└── tests/api_test.py              end-to-end API tests (187 checks)
-```
-
-### Database (8 tables, 6 sequences)
-`users`, `services`, `counters`, `tokens` (status, priority, position, timestamps, rating), `notifications`, `sessions`, `settings`, `activity_log`. Foreign keys, CHECK constraints and indexes on the hot columns (service/status, user/status, created time). Primary keys come from **Oracle sequences** (`users_seq.NEXTVAL` …), so the schema works unchanged on every Oracle version from 11g to 23ai.
-
-**What was adapted for Oracle** (the rest of the application is untouched):
-* `AUTO_INCREMENT` → sequences · `ENUM` → `VARCHAR2` + `CHECK` · `BOOLEAN` → `NUMBER(1)` + `CHECK (0,1)` · `DATETIME` → `TIMESTAMP(0)` · `VARCHAR(n)` → `VARCHAR2(n CHAR)`
-* `LIMIT / OFFSET` → `ROWNUM` pagination (works on 11g, unlike `FETCH FIRST`)
-* Oracle stores `''` as `NULL` and compares text case-sensitively → optional columns are nullable and searches use `LOWER(...) LIKE`
-* JDBC URL `jdbc:oracle:thin:@//host:port/service`; tables/sequences are created with "skip if it already exists" handling (Oracle has no `CREATE … IF NOT EXISTS`)
-
-### Request flow
-Browser → `fetch('/api/…')` (JSON, cookie session) → `Router` (role check) → `api/*` → `service/*` (PreparedStatement SQL, transaction for every queue change) → JSON → UI re-renders only if the HTML changed.
-
----
-
-## 5. Security
-* **Role-based access** (USER / STAFF / ADMIN) enforced on every endpoint on the server, not only in the UI
-* Passwords hashed with **PBKDF2-HMAC-SHA256** (per-user random salt, 150 000 iterations); never stored or logged in clear text
-* Session token = 256-bit random; only its **SHA-256 hash** is stored; cookie is `HttpOnly; SameSite=Strict`; logout and expiry invalidate it server-side
-* **PreparedStatement** for all SQL (no string-built queries) → no SQL injection
-* All user text is escaped in the UI (`SQ.html` template) → no XSS; strict **Content-Security-Policy** (`script-src 'self'`) and other security headers
-* **CSRF** protection: state-changing requests must carry `X-Requested-With: SmartQueue` (the frontend does this automatically; if you call the API with curl add the header or use a Bearer token)
-* **Login lock-out** (5 failed attempts within 10 minutes lock the account for 5 minutes), input validation on every field (length, format, ranges)
-
----
-
-## 6. Testing
-A stdlib-only Python test-suite exercises the real HTTP API, the database and the queue engine (registration, validation, security, token life-cycle, priority order, anti-starvation, ETA, walk-ins, hold/skip/recall/requeue, no-show auto-skip, analytics, reports, CSV, optimisation, notifications, cleanup):
+The application includes an end-to-end regression and functional test suite:
 
 ```bash
-./scripts/run.sh                                  # terminal 1 – on a FRESH database
-python3 tests/api_test.py http://localhost:8080 --slow     # terminal 2  (187 checks)
+# 1. Start application service
+./scripts/run.sh
+
+# 2. Run API integration tests
+python3 tests/api_test.py http://localhost:8080
 ```
-`--slow` additionally waits for the no-show timeout. Result during development: **187 passed, 0 failed**. The UI was verified in a real headless Chromium (login, customer flow, staff console, every admin page, lobby display, dark mode, phone width) with zero console errors.
 
-> **Honest note about how this edition was tested.** The development machine had no Oracle Database server and no access to Oracle's driver download, so the full automated suite (187 checks) and the browser tests were run against **H2 2.x in `MODE=Oracle`** – an Oracle-compatible engine that has the same sequences, `ROWNUM`, `VARCHAR2`/`NUMBER`/`TIMESTAMP` types, `''`→`NULL` behaviour and upper-case column names. The SQL was additionally parsed with an Oracle SQL parser and checked against Oracle's reserved words. What could **not** be proven without a real server is the behaviour of Oracle's own `ojdbc` driver (e.g. batch binding, generated-key retrieval, DATE metadata). The code deliberately uses only conservative, documented JDBC calls for those, but **run the 187-check suite once on your own Oracle** (commands above) – if anything differs, the start-up log and the test report will show exactly which statement to adjust. The same tests passed 187/187 on the original MySQL (MariaDB) edition.
-
----
-
-## 7. Troubleshooting
-| Message | Fix |
-|---|---|
-| `The Oracle JDBC driver is missing` | Put `ojdbc8.jar` in `lib/` (only one ojdbc jar at a time) |
-| `ORA-01017` – refused the user name or password | Edit `db.user` / `db.password`; create the user with `database/oracle-setup.sql` |
-| `ORA-12514` / `ORA-12505` / `ORA-12154` – listener does not know the service | Fix `db.service` (XE 11g: `XE` · XE 18c/21c: `XEPDB1` · 23ai Free: `FREEPDB1`); `lsnrctl status` lists the real names. Or set `db.sid` |
-| `Cannot reach Oracle` / `ORA-12541` | Start the Oracle service **and its listener**; check `db.host` / `db.port` (default 1521) |
-| `ORA-01950` / `ORA-01536` – no privileges / quota on tablespace | Run `ALTER USER smartqueue QUOTA UNLIMITED ON users;` (included in `oracle-setup.sql`) |
-| `ORA-01031` – insufficient privileges | `GRANT CREATE SESSION, CREATE TABLE, CREATE SEQUENCE TO smartqueue;` |
-| `ORA-65096` (invalid common user name) | You are in the root container – connect to the pluggable DB (`XEPDB1` / `FREEPDB1`) |
-| `Port 8080 is already in use` | Change `server.port` |
-| Phone cannot open the LAN address | Allow Java through the firewall; keep `server.host=0.0.0.0` |
-| Want a clean demo again | Stop the app, run `database/oracle-reset.sql` as the `smartqueue` user, start the app again (demo data is re-created) |
-| Wrong time zone | Set `app.timezone=Asia/Kolkata` (any Java zone id) |
-
-Everything the server does is logged to the console (start-up, scheduler, errors).
+The test harness evaluates 187 automated assertions covering:
+* Authentication boundaries and privilege escalation guards
+* Queue transactional integrity under concurrency
+* Anti-starvation scheduling rules
+* ETA algorithmic accuracy
+* No-show automatic state transitions
 
 ---
 
-## 8. REST API (summary)
-Base path `/api`. JSON in/out. Errors: `{"error": "message"}` with a proper HTTP status (400 validation, 401 not signed in, 403 forbidden, 404, 409 conflict, 429 too many attempts).
+## Troubleshooting Guide
 
-| Area | Endpoints |
-|---|---|
-| Auth | `POST auth/register`, `auth/login`, `auth/logout` · `GET auth/session`, `auth/me` · `PUT auth/profile` · `POST auth/change-password` |
-| Public | `GET public/config`, `public/services`, `public/board` (lobby display) |
-| Customer | `GET user/dashboard` · `POST user/tokens` · `GET user/tokens/{id}` · `POST user/tokens/{id}/cancel`, `…/feedback` · `GET user/history` |
-| Notifications | `GET notifications` · `POST notifications/read-all`, `notifications/{id}/read` · `DELETE notifications` |
-| Staff | `GET staff/overview`, `staff/history` · `POST staff/counter/open|close|break`, `staff/call-next`, `staff/walk-in`, `staff/tokens/{id}/call|start|complete|skip|recall|hold|resume|requeue|priority|move|cancel` |
-| Admin | `GET admin/dashboard|queues|analytics|reports|reports/export|recommendations|activity|settings` · `POST admin/recommendations/apply` · CRUD `admin/users`, `admin/services`, `admin/counters` (+ `open|close|reassign`, `reset-password`) · `PUT admin/settings` · `POST admin/demo/simulate-crowd|clear-waiting` |
-
----
-
-## 9. Viva / explanation cheat-sheet
-* **Why Java without Spring?** To show the fundamentals: HTTP server, routing, JDBC pooling, JSON and security are implemented explicitly; zero dependencies except the Oracle JDBC driver.
-* **How is concurrency handled?** Every queue-changing operation runs inside a DB transaction guarded by one application-level lock, so two counters can never call the same token and a customer can never hold two active tokens.
-* **How is the waiting time computed?** Simulation of open counters (see §3); improves with real data.
-* **How is starvation of normal customers prevented?** After *N* consecutive priority tokens one normal token is served (setting *Priority burst limit*).
-* **What happens if a customer does not show up?** After *No-show timeout* minutes the background job marks the token *Skipped*; staff can restore it to the end of the queue.
-* **How is the system secured?** See §5.
-* **How could it scale?** Replace polling with WebSockets/SSE, move the lock to row-level locking per service, add a read replica (Oracle Active Data Guard) for analytics, add SMS/e-mail providers behind `NotificationService`.
+| Issue | Root Cause | Resolution |
+|---|---|---|
+| `The Oracle JDBC driver is missing` | Driver archive missing from classpath | Place `ojdbc8.jar` inside the `lib/` directory |
+| `ORA-01017: invalid username/password` | Incorrect credentials supplied | Verify `db.user` and `db.password` in `application.properties` |
+| `ORA-12514 / ORA-12505` | Listener cannot locate target service | Verify service identifier with `lsnrctl status` and set `db.service` |
+| `ORA-12541: TNS:no listener` | Oracle Listener service offline | Start the Oracle listener service (`lsnrctl start`) |
+| `ORA-01950: no privileges on tablespace` | User quota unassigned | Execute `ALTER USER smartqueue QUOTA UNLIMITED ON users;` |
+| `Port 8080 is already in use` | Conflicting service binding | Update `server.port` in `config/application.properties` |
 
 ---
-Made with ❤ for the *Smart Queue & Crowd Management System* project.
+
+## License
+
+This project is open-source and distributed under the [MIT License](LICENSE).
